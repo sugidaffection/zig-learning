@@ -36,18 +36,6 @@ fn inputf64(prompt: []const u8, allocator: std.mem.Allocator) f64 {
     };
 }
 
-fn inputInt(prompt: []const u8, allocator: std.mem.Allocator) u8 {
-    const user_input = input(prompt, allocator) catch {
-        println("Invalid input!", .{});
-        return 0;
-    };
-    defer allocator.free(user_input);
-    return std.fmt.parseInt(u8, user_input, 10) catch {
-        println("Input is not a valid number!", .{});
-        return 0;
-    };
-}
-
 const Account = struct {
     balance: f64,
     allocator: std.mem.Allocator,
@@ -61,11 +49,19 @@ const Account = struct {
 
     fn deposit(self: *Account) void {
         const deposit_amount = inputf64("Please enter your deposit amount: ", self.allocator);
+        if (deposit_amount <= 0.0) {
+            println("Deposit amount must be greater than 0!", .{});
+            return;
+        }
         self.balance += deposit_amount;
     }
 
     fn withdraw(self: *Account) void {
         const withdraw_amount = inputf64("Please enter your withdraw amount: ", self.allocator);
+        if (withdraw_amount <= 0.0) {
+            println("Withdraw amount must be greater than 0!", .{});
+            return;
+        }
         if (self.balance < withdraw_amount) {
             println("Insufficient balance!", .{});
             return;
@@ -74,16 +70,37 @@ const Account = struct {
     }
 
     fn checkBalance(self: *Account) void {
-        println("My Current Balance: {d}", .{self.balance});
+        println("My Current Balance: {d:.2}", .{self.balance});
     }
 };
 
-const MenuOption = enum {
-    deposit,
-    withdraw,
-    check_balance,
-    exit,
+const MenuOption = enum(u8) {
+    deposit = 1,
+    withdraw = 2,
+    check_balance = 3,
+    exit = 4,
 };
+
+fn inputMenu(prompt: []const u8, allocator: std.mem.Allocator) MenuOption {
+    while (true) {
+        const user_input = input(prompt, allocator) catch {
+            println("Invalid input!", .{});
+            continue;
+        };
+        defer allocator.free(user_input);
+        const val = std.fmt.parseInt(u8, user_input, 10) catch {
+            println("Input is not a valid number!", .{});
+            continue;
+        };
+
+        if (val < 1 or val > 4) {
+            println("Invalid choice!", .{});
+            continue;
+        }
+
+        return @enumFromInt(val);
+    }
+}
 
 pub fn main() !void {
     println("Welcome to the Bank!", .{});
@@ -101,17 +118,13 @@ pub fn main() !void {
         println("3. Check Balance", .{});
         println("4. Exit", .{});
 
-        const choice = inputInt("\nPlease enter your choice: ", allocator);
+        const choice = inputMenu("\nPlease enter your choice: ", allocator);
 
         switch (choice) {
-            1 => account.deposit(),
-            2 => account.withdraw(),
-            3 => account.checkBalance(),
-            4 => break,
-            else => {
-                println("\nInvalid choice!", .{});
-                std.Thread.sleep(1 * std.time.ns_per_s);
-            },
+            .deposit => account.deposit(),
+            .withdraw => account.withdraw(),
+            .check_balance => account.checkBalance(),
+            .exit => break,
         }
     }
 }
