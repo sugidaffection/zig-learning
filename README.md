@@ -59,6 +59,38 @@ Over time, this workspace may include:
 
 Early stage. This repository is being prepared as the base for a long-term Zig learning journey.
 
+## Getting Started
+
+### Prerequisites
+
+- **Zig 0.15.2** or later (check with `zig version`)
+
+### Running Projects
+
+This workspace uses a single `build.zig` to manage multiple projects located in the `projects/` directory.
+
+To run a specific project:
+```bash
+zig build <project_name>
+```
+
+Available projects:
+- `hello_world`: `zig build hello_world`
+- `basics`: `zig build basics`
+- `bank_account`: `zig build bank_account`
+
+### Testing
+
+You can run tests for the entire workspace or for individual projects.
+
+- **Run all tests:** `zig build test`
+- **Run project tests:** `zig build test-<project_name>` (e.g., `zig build test-bank_account`)
+
+### Other Commands
+
+- **List all build steps:** `zig build --help`
+- **Install all binaries:** `zig build` (executables will be in `zig-out/bin/`)
+
 ## License
 
 This project is licensed under the MIT License. See `LICENSE` for details.
